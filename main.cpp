@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "biginteger.h"
+#include "rational.h"
 
 #include <bits/stdc++.h>
 

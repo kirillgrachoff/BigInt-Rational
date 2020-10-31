@@ -35,7 +35,7 @@ class Rational {
         }
     }
 
-    BigInteger divide(size_t) const;
+    BigInteger withPrecision(size_t) const;
 
 public:
     Rational(): num(0), den(1) {}
@@ -70,10 +70,10 @@ public:
     std::string asDecimal(size_t) const;
 
     explicit operator double() const {
-        BigInteger ans = divide(10);
-        double dbans = static_cast<double>(static_cast<long long>(ans));
-        dbans /= 10000000000.0;
-        return dbans;
+        BigInteger ans = withPrecision(10);
+        double doubleans = static_cast<double>(static_cast<long long>(ans));
+        doubleans /= 10000000000.0;
+        return doubleans;
     }
 
     Rational operator-() {
@@ -129,16 +129,16 @@ Rational& Rational::operator/=(const Rational& that) & {
     return *this;
 }
 
-BigInteger Rational::divide(size_t precision) const {
+BigInteger Rational::withPrecision(size_t precision) const {
     BigInteger a = num;
     BigInteger b = den;
-    a.Pow10(precision);
+    a.mulPow10(precision);
     BigInteger ans = a / b;
     return ans;
 }
 
 std::string Rational::asDecimal(size_t precision = 0) const {
-    BigInteger ans = divide(precision);
+    BigInteger ans = withPrecision(precision);
     int sign = ans.sign();
     if (sign < 0) {
         ans *= -1;

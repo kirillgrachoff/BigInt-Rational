@@ -8,8 +8,18 @@
 
 namespace BigIntegerHelpers {
 
-void normalize(std::vector<int>& a) {
+void delete_zeros(std::vector<int>& a) {
     while (!a.empty() && a.back() == 0) a.pop_back();
+}
+
+void to_base_10(std::vector<int>& a) {
+    int accumulator = 0;
+    for (size_t idx = 0; accumulator || idx < a.size(); ++idx) {
+        if (idx >= a.size()) a.push_back(0);
+        accumulator += a[idx];
+        a[idx] = accumulator % 10;
+        accumulator /= 10;
+    }
 }
 
 void sub_from(std::vector<int>& a, const std::vector<int>& b, size_t pos) {
@@ -23,21 +33,15 @@ void sub_from(std::vector<int>& a, const std::vector<int>& b, size_t pos) {
 }
 
 void abs_add(std::vector<int>& a, const std::vector<int>& b) {
-    int accumulator = 0;
-    size_t mx = std::max(a.size(), b.size());
-    for (size_t i = 0; i < mx || accumulator; ++i) {
-        accumulator += a[i];
-        if (i < b.size()) accumulator += b[i];
-        a[i] = accumulator % 10;
-        accumulator /= 10;
-        if (i + 1 >= a.size()) a.push_back(0);
-    }
-    normalize(a);
+    if (a.size() < b.size()) a.resize(b.size(), 0);
+    for (size_t i = 0; i < b.size(); ++i) a[i] += b[i];
+    to_base_10(a);
+    delete_zeros(a);
 }
 
 void abs_sub(std::vector<int>& a, const std::vector<int>& b) {
     sub_from(a, b, 0);
-    normalize(a);
+    delete_zeros(a);
 }
 
 int compare_to(const std::vector<int>& a, const std::vector<int>& b, size_t pos) {
@@ -54,7 +58,7 @@ std::vector<int> divide(std::vector<int>& a, const std::vector<int>& b) {
     std::vector<int> ans(a.size(), 0);
     for (size_t i = ans.size(); i--;) {
         for (int j = 0; j < 9; ++j) {
-            normalize(a);
+            delete_zeros(a);
             if (BigIntegerHelpers::compare_to(a, b, i) >= 0) {
                 BigIntegerHelpers::sub_from(a, b, i);
                 ++ans[i];
@@ -62,6 +66,11 @@ std::vector<int> divide(std::vector<int>& a, const std::vector<int>& b) {
         }
     }
     return ans;
+}
+
+void normalize(std::vector<int>& a) {
+    to_base_10(a);
+    delete_zeros(a);
 }
 }
 
@@ -167,23 +176,8 @@ void inplace_multiply(vector<int>& a, vector<int>& b) { /// b is 'constant'
     }
     fft_rev(a);
     fft_rev(b);
-    int accumulator = 0;
-    for (size_t idx = 0; accumulator || idx < a.size(); ++idx) {
-        if (idx >= a.size()) a.push_back(0);
-        accumulator += a[idx];
-        a[idx] = accumulator % 10;
-        accumulator /= 10;
-    }
-    BigIntegerHelpers::normalize(b);
-}
-
-vector<int> mul(vector<int> a, vector<int> b) {
-    inplace_multiply(a, b);
-    return a;
-}
-
-void mul_eq(vector<int>& a, vector<int> b) {
-    inplace_multiply(a, b);
+    BigIntegerHelpers::normalize(a);
+    BigIntegerHelpers::delete_zeros(b);
 }
 }
 
@@ -216,7 +210,7 @@ public:
         for (auto& it : s) {
             num_.push_back(it - '0');
         }
-        BigIntegerHelpers::normalize(num_);
+        BigIntegerHelpers::delete_zeros(num_);
         if (num_.empty()) sign_ = 1;
     }
 
@@ -262,7 +256,7 @@ public:
 
     explicit operator bool() const;
 
-    void Pow10(int);
+    void mulPow10(int);
 
     explicit operator long long() {
         int ans = 0;
@@ -274,7 +268,7 @@ public:
     }
 };
 
-void BigInteger::Pow10(int pw) {
+void BigInteger::mulPow10(int pw) {
     std::vector<int> nnum_(num_.size() + pw, 0);
     std::copy(num_.begin(), num_.end(), nnum_.begin() + pw);
     num_.swap(nnum_);
@@ -339,7 +333,7 @@ BigInteger& BigInteger::operator-=(const BigInteger& that) & { // TODO
         *this += that;
         that.sign_ *= -1;
     }
-    BigIntegerHelpers::normalize(num_);
+    BigIntegerHelpers::delete_zeros(num_);
     return *this;
 }
 
@@ -363,16 +357,16 @@ BigInteger& BigInteger::operator*=(const BigInteger& that) & { // DONE
     }
     sign_ *= that.sign_;
     fft::inplace_multiply(this->num_, that.num_);
-    BigIntegerHelpers::normalize(num_);
+    BigIntegerHelpers::delete_zeros(num_);
     return *this;
 }
 
 BigInteger& BigInteger::operator/=(const BigInteger& that) & { // DONE
     if (that == 0) {
-        throw std::runtime_error("divide by zero");
+        throw std::runtime_error("withPrecision by zero");
     }
     num_ = BigIntegerHelpers::divide(num_, that.num_);
-    BigIntegerHelpers::normalize(num_);
+    BigIntegerHelpers::delete_zeros(num_);
     sign_ *= that.sign_;
     if (num_.empty()) sign_ = 1;
     return *this;
@@ -380,7 +374,7 @@ BigInteger& BigInteger::operator/=(const BigInteger& that) & { // DONE
 
 BigInteger& BigInteger::operator%=(const BigInteger& that) & { // DONE
     if (that == 0) {
-        throw std::runtime_error("divide by zero");
+        throw std::runtime_error("withPrecision by zero");
     }
     sign_ *= that.sign_;
     BigIntegerHelpers::divide(num_, that.num_);
@@ -483,7 +477,7 @@ BigInteger& BigInteger::operator--() & {
             }
         }
     }
-    BigIntegerHelpers::normalize(num_);
+    BigIntegerHelpers::delete_zeros(num_);
     return *this;
 }
 
