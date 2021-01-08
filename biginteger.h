@@ -223,7 +223,7 @@ public:
         return this->sign_;
     }
 
-    void swap(BigInteger&) &;
+    void swap(BigInteger&);
 
     BigInteger& operator=(const BigInteger&) &;
 
@@ -274,19 +274,19 @@ void BigInteger::mulPow10(int pw) {
     num_.swap(nnum_);
 }
 
-void BigInteger::swap(BigInteger& that) & { // DONE
+void BigInteger::swap(BigInteger& that) {
     using std::swap;
     swap(num_, that.num_);
     swap(sign_, that.sign_);
 }
 
-BigInteger& BigInteger::operator=(const BigInteger& that) & { // DONE
+BigInteger& BigInteger::operator=(const BigInteger& that) & {
     BigInteger tmp = that;
     swap(tmp);
     return *this;
 }
 
-bool operator==(const BigInteger& x, const BigInteger& y) { // DONE
+bool operator==(const BigInteger& x, const BigInteger& y) {
     const std::vector<int>& a = x.num_;
     const std::vector<int>& b = y.num_;
     if (a.empty()) {
@@ -296,7 +296,7 @@ bool operator==(const BigInteger& x, const BigInteger& y) { // DONE
     return a == b;
 }
 
-bool operator<(const BigInteger& x, const BigInteger& y) { // DONE
+bool operator<(const BigInteger& x, const BigInteger& y) {
     if (x == y) return false;
     const std::vector<int>& a = x.num_;
     const std::vector<int>& b = y.num_;
@@ -305,7 +305,7 @@ bool operator<(const BigInteger& x, const BigInteger& y) { // DONE
     return BigIntegerHelpers::compare_to(a, b, 0) * x.sign() < 0;
 }
 
-BigInteger& BigInteger::operator-=(const BigInteger& that) & { // TODO
+BigInteger& BigInteger::operator-=(const BigInteger& that) & {
     if (*this == that) {
         sign_ = 1;
         num_.clear();
@@ -328,7 +328,7 @@ BigInteger& BigInteger::operator-=(const BigInteger& that) & { // TODO
         }
         that.sign_ = thatsign_;
         sign_ = nsign_;
-    } else if (sign() != that.sign()) {
+    } else {
         that.sign_ *= -1;
         *this += that;
         that.sign_ *= -1;
@@ -337,10 +337,10 @@ BigInteger& BigInteger::operator-=(const BigInteger& that) & { // TODO
     return *this;
 }
 
-BigInteger& BigInteger::operator+=(const BigInteger& that) & { // TODO
+BigInteger& BigInteger::operator+=(const BigInteger& that) & {
     if (sign() == that.sign()) {
         BigIntegerHelpers::abs_add(num_, that.num_);
-    } else if (sign() != that.sign()) {
+    } else {
         that.sign_ *= -1;
         *this -= that;
         that.sign_ *= -1;
@@ -348,7 +348,7 @@ BigInteger& BigInteger::operator+=(const BigInteger& that) & { // TODO
     return *this;
 }
 
-BigInteger& BigInteger::operator*=(const BigInteger& that) & { // DONE
+BigInteger& BigInteger::operator*=(const BigInteger& that) & {
     if (*this == 0) return *this;
     if (that == 0) {
         num_.clear();
@@ -361,9 +361,9 @@ BigInteger& BigInteger::operator*=(const BigInteger& that) & { // DONE
     return *this;
 }
 
-BigInteger& BigInteger::operator/=(const BigInteger& that) & { // DONE
+BigInteger& BigInteger::operator/=(const BigInteger& that) & {
     if (that == 0) {
-        throw std::runtime_error("withPrecision by zero");
+        throw std::runtime_error("division by zero");
     }
     num_ = BigIntegerHelpers::divide(num_, that.num_);
     BigIntegerHelpers::delete_zeros(num_);
@@ -372,7 +372,7 @@ BigInteger& BigInteger::operator/=(const BigInteger& that) & { // DONE
     return *this;
 }
 
-BigInteger& BigInteger::operator%=(const BigInteger& that) & { // DONE
+BigInteger& BigInteger::operator%=(const BigInteger& that) & {
     if (that == 0) {
         throw std::runtime_error("withPrecision by zero");
     }
@@ -384,13 +384,13 @@ BigInteger& BigInteger::operator%=(const BigInteger& that) & { // DONE
     return *this;
 }
 
-BigInteger BigInteger::operator-() const { // DONE
+BigInteger BigInteger::operator-() const {
     BigInteger ans = *this;
     if (ans) ans.sign_ *= -1;
     return ans;
 }
 
-BigInteger::operator std::string() const { // DONE
+BigInteger::operator std::string() const {
     std::string ans;
     for (auto& it : num_) {
         ans += '0' + it;
@@ -405,50 +405,38 @@ BigInteger::operator bool() const {
     return !num_.empty();
 }
 
-BigInteger operator*(const BigInteger& lhs, const BigInteger& rhs) { // DONE
+BigInteger operator*(const BigInteger& lhs, const BigInteger& rhs) {
     BigInteger ans = lhs;
     ans *= rhs;
     return ans;
 }
 
-BigInteger operator+(const BigInteger& lhs, const BigInteger& rhs) { // DONE
+BigInteger operator+(const BigInteger& lhs, const BigInteger& rhs) {
     BigInteger ans = lhs;
     ans += rhs;
     return ans;
 }
 
-BigInteger operator-(const BigInteger& lhs, const BigInteger& rhs) { // DONE
+BigInteger operator-(const BigInteger& lhs, const BigInteger& rhs) {
     BigInteger ans = lhs;
     ans -= rhs;
     return ans;
 }
 
-BigInteger operator/(const BigInteger& lhs, const BigInteger& rhs) { // DONE
+BigInteger operator/(const BigInteger& lhs, const BigInteger& rhs) {
     BigInteger ans = lhs;
     ans /= rhs;
     return ans;
 }
 
-BigInteger operator%(const BigInteger& lhs, const BigInteger& rhs) { // DONE
+BigInteger operator%(const BigInteger& lhs, const BigInteger& rhs) {
     BigInteger ans = lhs;
     ans %= rhs;
     return ans;
 }
 
 BigInteger& BigInteger::operator++() & {
-    if (sign() < 0) {
-        sign_ *= -1;
-        --*this;
-        sign_ *= -1;
-    } else {
-        int accumulator = 1;
-        for (size_t idx = 0; accumulator; ++idx) {
-            while (num_.size() <= idx) num_.push_back(0);
-            accumulator += num_[idx];
-            num_[idx] = accumulator % 10;
-            accumulator /= 10;
-        }
-    }
+    *this += 1;
     return *this;
 }
 
@@ -459,55 +447,37 @@ BigInteger BigInteger::operator++(int) & {
 }
 
 BigInteger& BigInteger::operator--() & {
-    if (sign() < 0) {
-        sign_ *= -1;
-        ++*this;
-        sign_ *= -1;
-    } else {
-        if (*this == 1) {
-            num_.clear();
-            sign_ = 1;
-        } else {
-            for (size_t idx = 0; idx + 1 < num_.size(); ++idx) {
-                --num_[idx];
-                if (num_[idx] < 0) {
-                    num_[idx] += 10;
-                    --num_[idx + 1];
-                } else break;
-            }
-        }
-    }
-    BigIntegerHelpers::delete_zeros(num_);
+    *this -= 1;
     return *this;
 }
 
-BigInteger BigInteger::operator--(int) & { // DONE
+BigInteger BigInteger::operator--(int) & {
     BigInteger ans = *this;
     --(*this);
     return ans;
 }
 
-BigInteger operator""_bi(const char* s) { // DONE
+BigInteger operator""_bi(const char* s) {
     return BigInteger(static_cast<std::string>(s));
 }
 
-bool operator!=(const BigInteger& lhs, const BigInteger& rhs) { // DONE
+bool operator!=(const BigInteger& lhs, const BigInteger& rhs) {
     return !(lhs == rhs);
 }
 
-bool operator>(const BigInteger& lhs, const BigInteger& rhs) { // DONE
+bool operator>(const BigInteger& lhs, const BigInteger& rhs) {
     return rhs < lhs;
 }
 
-bool operator<=(const BigInteger& lhs, const BigInteger& rhs) { // DONE
+bool operator<=(const BigInteger& lhs, const BigInteger& rhs) {
     return !(rhs < lhs);
 }
 
-bool operator>=(const BigInteger& lhs, const BigInteger& rhs) { // DONE
+bool operator>=(const BigInteger& lhs, const BigInteger& rhs) {
     return !(lhs < rhs);
 }
 
-std::ostream& operator<<(std::ostream& out, const BigInteger& v) { // DONE
+std::ostream& operator<<(std::ostream& out, const BigInteger& v) {
     out << static_cast<std::string>(v);
     return out;
 }
@@ -520,3 +490,4 @@ std::istream& operator>>(std::istream& in, BigInteger& a) {
 }
 
 #endif
+

@@ -39,7 +39,6 @@ bool checkTest(int a, int b) {
 }
 
 void solve() {
-    cout << Rational(1, -70).asDecimal(10) << '\n';
 }
 
 int main() {

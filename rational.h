@@ -160,6 +160,18 @@ std::string Rational::toString() const {
     return static_cast<std::string>(num) + '/' + static_cast<std::string>(den);
 }
 
+std::ostream& operator<<(std::ostream& out, const Rational& r) {
+    out << r.toString();
+    return out;
+}
+
+std::istream& operator>>(std::istream& in, Rational& r) {
+    int n;
+    in >> n;
+    r = n;
+    return in;
+}
+
 Rational operator+(const Rational& lhs, const Rational& rhs) {
     Rational ans = lhs;
     ans += rhs;
