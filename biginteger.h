@@ -374,7 +374,7 @@ BigInteger& BigInteger::operator/=(const BigInteger& that) & {
 
 BigInteger& BigInteger::operator%=(const BigInteger& that) & {
     if (that == 0) {
-        throw std::runtime_error("withPrecision by zero");
+        throw std::runtime_error("division by zero");
     }
     sign_ *= that.sign_;
     BigIntegerHelpers::divide(num_, that.num_);
